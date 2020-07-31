@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <script src="node_modules/three/build/three.min.js"></script>
+
+  <script id='sphere-vertex-shader' type='x-shader/x-vertex'>
+    attribute vec3 abc;
+
+    varying vec2 vUv;
+
+    void main() {
+        vUv = uv;
+
+        vec3 newPosition = abc * 50.0 + position;  //  *
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+        //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  </script>
+
+  <script id='sphere-fragment-shader' type='x-shader/x-fragment'>
+    varying vec2 vUv;
+
+    uniform sampler2D texture1;
+    //uniform sampler2D map;
+
+    void main() {
+        //gl_FragColor = vec4(1.0, 0.0, 1.0, 0.0);
+        gl_FragColor = texture2D(texture1, vUv.xy);
+    }
+
+  </script>
+
+  <!--
+          if ((fract(vUv.x * 10.0) < 0.02)
+            || (fract(vUv.y * 10.0) < 0.02)) {
+            gl_FragColor = vec4(vec3(0.0), 1.0);
+        } else {
+            gl_FragColor = vec4(1.0);
+        }
+  -->
+
+  <script type="module">
+    import ShaderDemo from './ShaderDemo.js';
+
+    const shaderDemo = new ShaderDemo();
+    shaderDemo.run();
+  </script>
+</body>
+</html>
