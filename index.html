@@ -8,6 +8,8 @@
   <script src="node_modules/three/build/three.min.js"></script>
 
   <script id='sphere-vertex-shader' type='x-shader/x-vertex'>
+    uniform float progress;
+
     attribute vec3 abc;
 
     varying vec2 vUv;
@@ -15,7 +17,7 @@
     void main() {
         vUv = uv;
 
-        vec3 newPosition = abc * 50.0 + position;  //  *
+        vec3 newPosition = abc * 200.0 * progress + position;  //  *
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
         //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }

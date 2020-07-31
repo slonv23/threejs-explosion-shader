@@ -55,6 +55,7 @@ export default class ShaderDemo {
                 vertexShader:   document.getElementById('sphere-vertex-shader').textContent,
                 fragmentShader: document.getElementById('sphere-fragment-shader').textContent
             });
+            this.mat = mat;
             for (const mesh of gltf.scene.children) {
                 mesh.material = mat;
 
@@ -107,6 +108,7 @@ export default class ShaderDemo {
 
         while (this.delta >= this.timestep) {
             // this.update()
+            this.mat.uniforms.progress.value += 0.001;
             this.delta -= this.timestep;
         }
 
