@@ -1,5 +1,29 @@
 import {GLTFLoader} from "./GltfLoader2.js";
 import {OrbitControls} from './OrbitControls.js';
+import {ParticleEngine, Tween, Type} from "./ParticleEngine.js";
+
+const textureLoader = new THREE.TextureLoader();
+
+const particleEngineParameters = {
+    positionStyle  : Type.SPHERE,
+    positionBase   : new THREE.Vector3( 0, 0, 0 ),
+    positionRadius : 2,
+
+    velocityStyle : Type.SPHERE,
+    speedBase     : 40, //40,
+    speedSpread   : 8,
+
+    particleTexture : textureLoader.load('assets/smokeparticle.png'), //THREE.ImageUtils.loadTexture( 'assets/smokeparticle.png' ),
+
+    sizeTween    : new Tween( [0, 0.1], [1, 150] ),
+    opacityTween : new Tween( [0.7, 1], [1, 0] ),
+    colorBase    : new THREE.Vector3(0.02, 1, 0.4),
+    blendStyle   : THREE.AdditiveBlending,
+
+    particlesPerSecond : 360,
+    particleDeathAge   : 3, //1.5,
+    emitterDeathAge    : 1, //60
+};
 
 export default class ShaderDemo {
 
@@ -26,13 +50,17 @@ export default class ShaderDemo {
 
 
         // add some objects
-        let geometry = new THREE.BoxGeometry( 1, 1, 1 );
+        /*let geometry = new THREE.BoxGeometry( 1, 1, 1 );
         let material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
         let cube = new THREE.Mesh(geometry, material);
         cube.position.z = 0;
-        this.scene.add(cube);
+        this.scene.add(cube);*/
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        this.particleEngine = new ParticleEngine();
+        this.particleEngine.setValues(particleEngineParameters);
+        this.particleEngine.initialize(this.scene);
     }
 
     run() {
@@ -40,8 +68,8 @@ export default class ShaderDemo {
         //const path = 'assets/StarSparrow.glb'; // 'assets/SmallSpaceFighter2.glb';
         //const path = 'assets/StarSparrow_fragmented.glb';
         const path = 'assets/CubeWithTexture_frag_parts.glb';
-        var textureLoader = new THREE.TextureLoader();
-        const texture1 = textureLoader.load('assets/lavatile.jpg');
+        //const textureLoader = new THREE.TextureLoader();
+        //const texture1 = textureLoader.load('assets/lavatile.jpg');
         //debugger;
 
         this.gltfLoader.load(path, (gltf) => {
@@ -60,15 +88,42 @@ export default class ShaderDemo {
                 mesh.material = mat;
 
                 let verticesCount = mesh.geometry.attributes.position.array.length / 3;
-                const centroid = this.getCentroid(mesh.geometry);
-                let centroidAttributes = new Array(verticesCount * 3).fill(0);
-                for (let i = 0; i < verticesCount * 3; i = i + 3) {
+                //const centroid = this.getCentroid(mesh.geometry);
+                const centroid = mesh.position; //this.getCentroid(mesh.geometry);
+                const rotationSpeed = Math.random() * 0.03 + 0.03; //0.006;
+                const rotationAxis = this.randomUnitVector();
+
+                const centroidAttributes = new Array(verticesCount * 3).fill(0);
+                const rotationAxisAttributes = new Array(verticesCount * 3).fill(0);
+                const rotationSpeedAttributes = new Array(verticesCount).fill(0);
+
+                for (let i = 0, j = 0; i < verticesCount * 3; i = i + 3, j = j + 1) {
                     centroidAttributes[i] = centroid.x;
                     centroidAttributes[i + 1] = centroid.y;
                     centroidAttributes[i + 2] = centroid.z;
+                    rotationAxisAttributes[i] = rotationAxis.x;
+                    rotationAxisAttributes[i + 1] = rotationAxis.y;
+                    rotationAxisAttributes[i + 2] = rotationAxis.z;
+                    rotationSpeedAttributes[j] = rotationSpeed;
                 }
 
+                //const quat = [0, 0, 0, 1];
+                //const quatMultiplier = [this.timestep * 0.5 * angularVelocity, 0, 0, 1];
+                //debugger;
+
                 mesh.geometry.setAttribute('abc', new THREE.BufferAttribute(new Float32Array(centroidAttributes), 3));
+                mesh.geometry.setAttribute('rtAxis', new THREE.BufferAttribute(new Float32Array(rotationAxisAttributes), 3));
+                mesh.geometry.setAttribute('rtSpeed', new THREE.BufferAttribute(new Float32Array(rotationSpeedAttributes), 1));
+                // rotationAxis.x, rotationAxis.y, rotationAxis.z
+                //mesh.geometry.setAttribute('rotationSpeed', new THREE.BufferAttribute(new Float32Array([rotationSpeed]), 1));
+                /*
+                    attribute vec4 quat;
+                    attribute vec4 quatMultiplier;
+                 */
+
+
+                // angleChange.y * 0.5,
+
                 //debugger;
                 /*new THREE.ShaderMaterial({
                     uniforms: {
@@ -85,6 +140,12 @@ export default class ShaderDemo {
         }, undefined, function (err) {
             console.error(err);
         });
+    }
+
+    randomUnitVector() {
+        const vect = new THREE.Vector3(Math.random(), Math.random(), Math.random());
+        vect.normalize();
+        return vect;
     }
 
     startRenderLoop() {
@@ -108,7 +169,8 @@ export default class ShaderDemo {
 
         while (this.delta >= this.timestep) {
             // this.update()
-            this.mat.uniforms.progress.value += 0.001;
+            this.particleEngine.update(this.timestep);
+            this.mat.uniforms.progress.value += this.delta;
             this.delta -= this.timestep;
         }
 
