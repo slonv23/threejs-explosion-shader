@@ -58,9 +58,28 @@ export default class ShaderDemo {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-        this.particleEngine = new ParticleEngine();
-        this.particleEngine.setValues(particleEngineParameters);
-        this.particleEngine.initialize(this.scene);
+        //this.particleEngine = new ParticleEngine();
+        //this.particleEngine.setValues(particleEngineParameters);
+        //this.particleEngine.initialize(this.scene);
+
+        var geometry = new THREE.SphereGeometry(0.1, 16, 16);
+        geometry.applyMatrix( new THREE.Matrix4().makeScale( 1.0, 1.2, 3.0/*1.5*/ ));
+        //let material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+        let material = new THREE.ShaderMaterial({
+            vertexShader:   document.getElementById('plasma-blast-vertex-shader').textContent,
+            fragmentShader: document.getElementById('plasma-blast-fragment-shader').textContent,
+            transparent: true,
+
+        });
+        let ellipsoid  = new THREE.Mesh(geometry, material);
+        let ellipsoid2  = new THREE.Mesh(geometry, material);
+        let ellipsoid3  = new THREE.Mesh(geometry, material);
+        ellipsoid2.position.z -= 1;
+        ellipsoid3.position.y -= 1;
+        this.scene.add(ellipsoid);
+        this.scene.add(ellipsoid2);
+        this.scene.add(ellipsoid3);
+
     }
 
     run() {
@@ -169,7 +188,7 @@ export default class ShaderDemo {
 
         while (this.delta >= this.timestep) {
             // this.update()
-            this.particleEngine.update(this.timestep);
+            //this.particleEngine.update(this.timestep);
             this.mat.uniforms.progress.value += this.delta;
             this.delta -= this.timestep;
         }

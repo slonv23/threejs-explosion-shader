@@ -120,6 +120,59 @@
 
   </script>
 
+
+
+  <script id='plasma-blast-vertex-shader' type='x-shader/x-vertex'>
+    varying float modifier;
+
+    void main() {
+      // cameraPosition
+      //vec4 newPos = modelViewMatrix * vec4(position, 1.0);
+      //vec4 pointOnEllipsoid = modelViewMatrix * vec4(0, -1, 0, 1);
+
+      vec3 localCoOrdSysPos = vec3(modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
+      vec3 topmostPoint = (modelMatrix * vec4(0.0, 0.0, 1.0, 1.0)).xyz;
+      vec3 primaryAxis = topmostPoint - localCoOrdSysPos;
+      vec3 normalToSurf = normalize(cross(primaryAxis, cameraPosition.xyz - localCoOrdSysPos));
+
+      //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vec4 posInWorld = modelMatrix * vec4(position, 1.0);
+
+      vec3 normalizedPos = normalize(posInWorld.xyz - localCoOrdSysPos); //normalize(gl_Position.xyz - localCoOrdSysPos);
+
+      modifier = abs(dot(normalToSurf, normalizedPos)); //sqrt(abs(dot(normalToSurf, normalizedPos)));
+      if (modifier > 1.0) {
+        modifier = 1.0;
+      }
+      modifier = 1.0 - modifier;
+      //if (modifier < 0.1) {
+      //  modifier = 0.1;
+      //}
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+      //vec3 center = vec3(0, -1, 0);
+      //mat3 matrix = mat3(newPos.xyz, pointOnEllipsoid.xyz, cameraPosition.xyz); // mat3(center, position, vec3(1, 0, 0));
+      //modifier22 = determinant(matrix); // 0.0;
+      //if (abs(modifier22) < 0.3) {
+      //  modifier22 = 1.0;
+      //} else {
+      //  modifier22 = 0.5;
+      //}
+      //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  </script>
+
+  <script id='plasma-blast-fragment-shader' type='x-shader/x-vertex'>
+    varying float modifier;
+
+    void main() {
+      // (3) [0.25882352941176473, 0.6901960784313725, 0.9607843137254902]
+      gl_FragColor = vec4(0.26 * modifier, 0.69 * modifier, 0.96 * modifier, modifier);
+      // gl_FragColor = vec4(0.0, 0.1, 1.0 - modifier, 1.0 - modifier); //vec4(0.2, 0.67, 0.92, 0.0); //0.92
+    }
+  </script>
+
   <!--
           if ((fract(vUv.x * 10.0) < 0.02)
             || (fract(vUv.y * 10.0) < 0.02)) {
