@@ -58,12 +58,12 @@ export default class ShaderDemo {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-        //this.particleEngine = new ParticleEngine();
-        //this.particleEngine.setValues(particleEngineParameters);
-        //this.particleEngine.initialize(this.scene);
+        this.particleEngine = new ParticleEngine();
+        this.particleEngine.setValues(particleEngineParameters);
+        this.particleEngine.initialize(this.scene);
 
         var geometry = new THREE.SphereGeometry(0.1, 16, 16);
-        geometry.applyMatrix( new THREE.Matrix4().makeScale( 1.0, 1.2, 3.0/*1.5*/ ));
+        geometry.applyMatrix( new THREE.Matrix4().makeScale( 1.0, 1.0, 4.0/*1.5*/ ));
         //let material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
         let material = new THREE.ShaderMaterial({
             vertexShader:   document.getElementById('plasma-blast-vertex-shader').textContent,
@@ -75,11 +75,17 @@ export default class ShaderDemo {
         let ellipsoid2  = new THREE.Mesh(geometry, material);
         let ellipsoid3  = new THREE.Mesh(geometry, material);
         ellipsoid2.position.z -= 1;
+        ellipsoid2.position.z -= 0.3;
+        ellipsoid2.position.y -= 0.3;
         ellipsoid3.position.y -= 1;
+        ellipsoid3.position.x += 0.3;
         this.scene.add(ellipsoid);
         this.scene.add(ellipsoid2);
         this.scene.add(ellipsoid3);
 
+        this.ellipsoid = ellipsoid;
+        this.ellipsoid2 = ellipsoid2;
+        this.ellipsoid3 = ellipsoid3;
     }
 
     run() {
@@ -175,6 +181,9 @@ export default class ShaderDemo {
             this.renderer.render(this.scene, this.camera);
 
             requestAnimationFrame(this.gameLoop);
+            setTimeout(() => {
+                this.ready = true;
+            }, 5000);
         });
     }
 
@@ -186,12 +195,19 @@ export default class ShaderDemo {
         this.delta += timestamp - this.lastFrameTimeMs;
         this.lastFrameTimeMs = timestamp;
 
+
         while (this.delta >= this.timestep) {
             // this.update()
-            //this.particleEngine.update(this.timestep);
-            this.mat.uniforms.progress.value += this.delta;
+            if (this.ready) {
+                this.particleEngine.update(this.timestep);
+                this.mat.uniforms.progress.value += this.timestep;
+                this.ellipsoid.position.z += this.timestep / 100;
+                this.ellipsoid2.position.z += this.timestep / 100;
+                this.ellipsoid3.position.z += this.timestep / 100;
+            }
             this.delta -= this.timestep;
         }
+
 
         this.controls.update();
         this.renderer.clear();

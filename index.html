@@ -133,21 +133,27 @@
       vec3 localCoOrdSysPos = vec3(modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
       vec3 topmostPoint = (modelMatrix * vec4(0.0, 0.0, 1.0, 1.0)).xyz;
       vec3 primaryAxis = topmostPoint - localCoOrdSysPos;
-      vec3 normalToSurf = normalize(cross(primaryAxis, cameraPosition.xyz - localCoOrdSysPos));
+      vec3 cameraPosDiffCenterPos = cameraPosition.xyz - localCoOrdSysPos;
+      vec3 normalToSurf = normalize(cross(primaryAxis, cameraPosDiffCenterPos));
 
       //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       vec4 posInWorld = modelMatrix * vec4(position, 1.0);
+      vec3 directionToPosFromCenter = posInWorld.xyz - localCoOrdSysPos;
 
-      vec3 normalizedPos = normalize(posInWorld.xyz - localCoOrdSysPos); //normalize(gl_Position.xyz - localCoOrdSysPos);
+      vec3 normalizedPos = normalize(directionToPosFromCenter); //normalize(gl_Position.xyz - localCoOrdSysPos);
 
-      modifier = abs(dot(normalToSurf, normalizedPos)); //sqrt(abs(dot(normalToSurf, normalizedPos)));
+      float k1 = (1.0 - dot(normalize(cameraPosDiffCenterPos), normalizedPos)) / 2.0; // how close (angle) to direction we looking at
+      float k2 = dot(normalToSurf, normalizedPos) / 2.0; // how close to ellipse on ellipsoid we looking at
+
+      modifier = abs(k1) + abs(k2); //sqrt(abs(dot(normalToSurf, normalizedPos)));
       if (modifier > 1.0) {
         modifier = 1.0;
       }
-      modifier = 1.0 - modifier;
-      //if (modifier < 0.1) {
-      //  modifier = 0.1;
+      //if (modifier > 0.6) {
+      //  modifier = 0.6;
       //}
+      modifier = 1.0 - modifier;
+
 
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
@@ -168,7 +174,13 @@
 
     void main() {
       // (3) [0.25882352941176473, 0.6901960784313725, 0.9607843137254902]
-      gl_FragColor = vec4(0.26 * modifier, 0.69 * modifier, 0.96 * modifier, modifier);
+      float opacity = 1.0;
+      //if (modifier < 0.6)
+      //  opacity = 0.6;
+      //else
+      //  opacity = modifier;
+      //gl_FragColor = vec4(0.26 * modifier, 0.69 * modifier, 0.96 * modifier, opacity);
+      gl_FragColor = vec4(0.86 - (0.86 - 1.0) * modifier, 0.92 * modifier, 0.20 - 0.20 * modifier, opacity);
       // gl_FragColor = vec4(0.0, 0.1, 1.0 - modifier, 1.0 - modifier); //vec4(0.2, 0.67, 0.92, 0.0); //0.92
     }
   </script>
