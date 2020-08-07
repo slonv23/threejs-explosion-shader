@@ -79,9 +79,9 @@ export default class ShaderDemo {
         ellipsoid2.position.y -= 0.3;
         ellipsoid3.position.y -= 1;
         ellipsoid3.position.x += 0.3;
-        this.scene.add(ellipsoid);
-        this.scene.add(ellipsoid2);
-        this.scene.add(ellipsoid3);
+        //this.scene.add(ellipsoid);
+        //this.scene.add(ellipsoid2);
+        //this.scene.add(ellipsoid3);
 
         this.ellipsoid = ellipsoid;
         this.ellipsoid2 = ellipsoid2;
@@ -92,7 +92,7 @@ export default class ShaderDemo {
         //const path = 'assets/SmallSpaceFighter_fragmented.glb';
         //const path = 'assets/StarSparrow.glb'; // 'assets/SmallSpaceFighter2.glb';
         //const path = 'assets/StarSparrow_fragmented.glb';
-        const path = 'assets/CubeWithTexture_frag_parts.glb';
+        const path = 'assets/StarSparrow_final_fixes.glb'; //'assets/CubeWithTexture_frag_parts.glb';
         //const textureLoader = new THREE.TextureLoader();
         //const texture1 = textureLoader.load('assets/lavatile.jpg');
         //debugger;
@@ -109,6 +109,7 @@ export default class ShaderDemo {
                 fragmentShader: document.getElementById('sphere-fragment-shader').textContent
             });
             this.mat = mat;
+            debugger;
             for (const mesh of gltf.scene.children) {
                 mesh.material = mat;
 
@@ -136,6 +137,9 @@ export default class ShaderDemo {
                 //const quatMultiplier = [this.timestep * 0.5 * angularVelocity, 0, 0, 1];
                 //debugger;
 
+                //mesh.position.x = 0;
+                //mesh.position.y = 0;
+                //mesh.position.z = 0;
                 mesh.geometry.setAttribute('abc', new THREE.BufferAttribute(new Float32Array(centroidAttributes), 3));
                 mesh.geometry.setAttribute('rtAxis', new THREE.BufferAttribute(new Float32Array(rotationAxisAttributes), 3));
                 mesh.geometry.setAttribute('rtSpeed', new THREE.BufferAttribute(new Float32Array(rotationSpeedAttributes), 1));
@@ -158,6 +162,7 @@ export default class ShaderDemo {
                     fragmentShader: document.getElementById('sphere-fragment-shader').textContent
                 });*/
             }
+
 
             this.scene.add(model);
 
